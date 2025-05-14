@@ -11,11 +11,6 @@
         <module name="order-service" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="service-discovery" target="21" />
-      <module name="user-service.main" target="21" />
-      <module name="user-service.test" target="21" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
