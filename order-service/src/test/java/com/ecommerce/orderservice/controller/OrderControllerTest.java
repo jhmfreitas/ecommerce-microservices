@@ -1,8 +1,12 @@
 package com.ecommerce.orderservice.controller;
 
+import com.ecommerce.orderservice.controller.dtos.CreateOrderRequestDto;
+import com.ecommerce.orderservice.controller.dtos.OrderItemDto;
 import com.ecommerce.orderservice.model.Order;
-import com.ecommerce.orderservice.model.OrderItem;
-import com.ecommerce.orderservice.repository.OrderRepository;
+import com.ecommerce.orderservice.service.OrderService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.stream.Stream;
@@ -17,27 +21,34 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 class OrderControllerTest {
 
   @Autowired
-  OrderRepository orderRepository;
+  OrderService orderService;
 
   @Autowired
   TestRestTemplate testRestTemplate;
 
+  @Autowired
+  ObjectMapper objectMapper;
+
   @BeforeEach
   void setUp() {
+    OrderItemDto orderItemDto = new OrderItemDto(1, 1L, "Product Name", BigDecimal.valueOf(56.5));
     Stream.iterate(1, i -> i + 1).limit(10)
-        .forEach(i -> orderRepository.save(createOrder(i)));
-  }
-
-  private static Order createOrder(Integer orderId) {
-    OrderItem orderItem = new OrderItem(1, 1L, "Product Name", BigDecimal.valueOf(56.5));
-    Order order = new Order(Long.valueOf(orderId), LocalDateTime.now());
-    order.addItem(orderItem);
-    return order;
+        .forEach(i -> {
+          CreateOrderRequestDto createOrderRequestDto = new CreateOrderRequestDto(1L,
+              LocalDateTime.now(),
+              Stream.of(orderItemDto).toList());
+          orderService.createOrder(createOrderRequestDto);
+        });
   }
 
   @Test
-  void getOrdersSuccess() {
-    Order[] orders = testRestTemplate.getForObject("/order", Order[].class);
+  void getOrdersSuccess() throws JsonProcessingException {
+    String jsonResponse = testRestTemplate.getForObject("/order", String.class);
+
+    JsonNode root = objectMapper.readTree(jsonResponse);
+    JsonNode content = root.get("content");
+
+    Order[] orders = objectMapper.treeToValue(content, Order[].class);
 
     Assertions.assertNotNull(orders);
     Assertions.assertEquals(10, orders.length);
