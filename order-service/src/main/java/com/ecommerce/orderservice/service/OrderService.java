@@ -1,11 +1,11 @@
 package com.ecommerce.orderservice.service;
 
 import com.ecommerce.orderservice.controller.dtos.CreateOrderRequestDto;
+import com.ecommerce.orderservice.controller.dtos.CustomerDto;
 import com.ecommerce.orderservice.controller.dtos.OrderItemDto;
 import com.ecommerce.orderservice.model.Order;
 import com.ecommerce.orderservice.model.OrderItem;
 import com.ecommerce.orderservice.repository.OrderRepository;
-import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -17,9 +17,11 @@ public class OrderService {
 
   private static final Logger log = LoggerFactory.getLogger(OrderService.class);
   private final OrderRepository orderRepository;
+  private final UserClient userClient;
 
-  public OrderService(OrderRepository orderRepository) {
+  public OrderService(OrderRepository orderRepository, UserClient userClient) {
     this.orderRepository = orderRepository;
+    this.userClient = userClient;
   }
 
   public Order getOrder(Long orderId) {
@@ -32,10 +34,16 @@ public class OrderService {
         );
   }
 
-  @Transactional
   public Order createOrder(CreateOrderRequestDto createOrderRequestDto) {
     if (isCreateOrderRequestInvalid(createOrderRequestDto)) {
+      log.warn("Invalid request: {}", createOrderRequestDto);
       throw new IllegalArgumentException("Invalid order request data");
+    }
+
+    CustomerDto customerDto = userClient.getCustomerById(createOrderRequestDto.customerId());
+    if (customerDto == null || customerDto.name() == null) {
+      throw new IllegalArgumentException(
+          "Customer not found with id: " + createOrderRequestDto.customerId());
     }
 
     log.info("Creating order for customer {}", createOrderRequestDto.customerId());

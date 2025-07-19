@@ -16,7 +16,7 @@ class User(
     val name: String,
 
     @Column(nullable = false)
-    val hashedPassword: String = ""
+    val hashedPassword: ByteArray? = null
 ) {
-    protected constructor() : this(null, "", "", "")
+    protected constructor() : this(null, "", "", null)
 }
