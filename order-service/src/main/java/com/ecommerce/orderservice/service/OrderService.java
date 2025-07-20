@@ -64,11 +64,11 @@ public class OrderService {
 
   private static Order mapToOrder(CreateOrderRequestDto createOrderRequestDto) {
     Order order = new Order(createOrderRequestDto.customerId(), createOrderRequestDto.orderDate());
-    createOrderRequestDto.orderItemDtos().forEach(i -> order.addItem(mapToOrderItem(i, order)));
+    createOrderRequestDto.orderItemDtos().forEach(i -> order.addItem(mapToOrderItem(i)));
     return order;
   }
 
-  private static OrderItem mapToOrderItem(OrderItemDto i, Order order) {
+  private static OrderItem mapToOrderItem(OrderItemDto i) {
     return new OrderItem(i.quantity(), i.productId(), i.productName(),
         i.unitPrice());
   }
